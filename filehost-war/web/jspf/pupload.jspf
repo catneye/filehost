@@ -1,0 +1,237 @@
+
+<%@ page pageEncoding="UTF-8" %>
+<%@include file="/jspf/ploader.jspf" %>
+<%@include file="/jspf/phint.jspf" %>
+<div style="width:100%; min-height: 100%;display: table;">
+    <div style="width:70%;;display: table-cell;background: lightyellow;text-align: center" id="fileuploadframe">
+        <div class="fileupload">
+            <button type="button">...</button>
+            <div id='fileuploaddiv'>Файл не выбран</div>
+            <input type="file" id='fileuploadfile' onchange="$('fileuploaddiv').innerHTML = this.files[0].name; return false;">
+        </div>
+        <div>
+            <label for="fileuploadfilecaptcha">Проверочный код на картинке <span class="redtext">*</span> <br />
+                <img id="fileuploadfilecaptchaimg" src="./Captcha/captcha.png"><br />
+                <a href='#' onclick='newcaptcha($("fileuploadfilecaptchaimg"));
+                        return false;' style="text-decoration: underline;">Обновить</a>
+            </label>
+            <div>
+                <input type="text" id="fileuploadfilecaptcha" name="fileuploadfilecaptcha"/>
+            </div>
+        </div>
+        <!--
+        <div>
+            <label for="fileuploadfiletags">Теги
+            </label>
+            <div>
+                <input type="text" id="fileuploadfiletags" name="fileuploadfiletags" maxlength="64"/>
+            </div>
+        </div>
+        -->
+        <div>
+            <progress value="0" max="100" id="fileuploadprogress" style="width:80%; margin: 5px">Состояние</progress>
+        </div>
+        <div>
+            <span>Осуществляя загрузку Вы соглашаетесь с <a href="#" onclick="floader.showRules();return false;">правилами</a> хостинга</span>
+        </div>
+        <div>
+            <input type="button" value="Загрузить" onclick="floader.fileUpload();return false;"/>
+        </div>
+        <div id="fileuploadresult">
+        </div>
+        <div id="fileprocessframe">
+        </div>
+    </div>
+    <div style="width:30%;display: table-cell;background: lightcyan;" id="lastuploadframe">
+        <p style="width:100%; text-align: center;">Недавние загрузки</p>
+        <%@include file="/jspf/plasts.jspf" %>
+    </div>
+</div>
+
+
+<script>
+    function fileLoader() {
+        var filename;
+
+        function setProgress(loaded, total) {
+            var percentage = Math.round((loaded * 100) / (total));
+            $('fileuploadprogress').value = percentage;
+        }
+        this.showRules = function () {
+            $('rules').show();
+        };
+
+        this.fileUpload = function () {
+            setProgress(0, 100);
+            var files = $('fileuploadfile').files;
+            var file = files[0];
+            var fs = new FileSlicer(file);
+            var loaded = 0;
+            var total = fs.slices;
+
+            var wsUri = getWsUri() + "/WSfilehostupload";
+            var uplsocket = new WebSocket(wsUri);
+            uplsocket.onopen = function (event) {
+                var item = {};
+                item.filename = file.name;
+                //item.tags = $('fileuploadfiletags').value;
+                item.captcha = $('fileuploadfilecaptcha').value;
+                var obj = {type: "buploadfile",
+                    object: item
+                };
+                uplsocket.send(Object.toJSON(obj));
+            };
+            uplsocket.onmessage = function (event) {
+                var json = JSON.parse(event.data);
+                console.log('UploadSocket onMessage');
+                console.log('json response: ' + json.response);
+                if (json.response === 'processupload') {
+                    fs.slices--;
+                    if (fs.slices >= 0) {
+                        loaded++;
+                        uplsocket.send(fs.getNextSlice());
+                        setProgress(loaded, total);
+                    } else {
+                        loaded++;
+                        setProgress(loaded, total);
+                        var obj = {type: "euploadfile",
+                            object: 0
+                        };
+                        uplsocket.send(Object.toJSON(obj));
+                    }
+                } else if ((json.response === 'buploadfile') && (json.result === "ok")) {
+                    fs.slices--;
+                    loaded++;
+                    uplsocket.send(fs.getNextSlice());
+                    setProgress(loaded, total);
+                } else if (json.response === 'euploadfile') {
+                    uplsocket.close();
+                    console.log('json.result : ' + json.result);
+                    onfileUpload(json.result);
+                }
+            };
+        };
+
+        function onfileUpload(result) {
+            if (result && (result !== "false")) {
+                filename = result;
+                var div = $("fileuploadresult");
+                if (div) {
+                    while (div.firstChild) {
+                        div.removeChild(div.firstChild);
+                    }
+                }
+                var div0 = document.createElement("div");
+                div0.innerHTML = "Загружен файл: " + result;
+
+                var div1 = document.createElement("div");
+                div1.innerHTML = "Анализ файла:";
+
+                div.appendChild(div0);
+                div.appendChild(div1);
+                $('loader').show();
+
+                processFile(result);
+            }
+        }
+
+        function processFile(name) {
+            var item = name;
+            obj = {type: "processfile",
+                object: item};
+            socketsend(Object.toJSON(obj));
+        }
+
+        this.onprocessFile = function (result) {
+            $('loader').hide();
+            if (result && (result !== "false")) {
+                var fileinfo = JSON.parse(result);
+                var div = $("fileprocessframe");
+                var uri = getUri();
+                if (div) {
+                    while (div.firstChild) {
+                        div.removeChild(div.firstChild);
+                    }
+                }
+                var div0 = document.createElement("div");
+                div0.setStyle({'display': 'table'});
+                var span0 = document.createElement("span");
+                span0.innerHTML = "Определен тип файла: " + fileinfo.type;
+                span0.setStyle({'display': 'table-cell', 'vertical-align': 'middle'});
+                var img0 = document.createElement("img");
+                img0.src = uri + "/images/icons/48px/" + fileinfo.icon;
+                img0.setStyle({'display': 'table-cell', 'vertical-align': 'middle'});
+                img0.src = uri + "/images/icons/48px/" + fileinfo.icon;
+                img0.setStyle({'display': 'table-cell', 'vertical-align': 'middle'});
+                div0.appendChild(span0);
+                div0.appendChild(img0);
+                div.appendChild(div0);
+                if (fileinfo.dlink) {
+                    var div1 = document.createElement("div");
+                    div1.setStyle({'display': 'table'});
+                    var span1 = document.createElement("span");
+                    span1.innerHTML = "Ссылка для скачивания: ";
+                    var a1 = document.createElement('a');
+                    var linkText1 = document.createTextNode(getGoto("Download", "?" + fileinfo.dlink));
+                    a1.appendChild(linkText1);
+                    a1.title = getGoto("Download", "?" + fileinfo.dlink);
+                    a1.href = getGoto("Download", "?" + fileinfo.dlink);
+                    div1.appendChild(span1);
+                    div1.appendChild(a1);
+                    div.appendChild(div1);
+                }
+                if (fileinfo.p100) {
+                    var div2 = document.createElement("div");
+                    div2.setStyle({'display': 'table'});
+                    var span2 = document.createElement("span");
+                    span2.innerHTML = "Картинка 100: ";
+                    var a2 = document.createElement('a');
+                    var linkText2 = document.createTextNode(fullUrl("Get" + "/" + fileinfo.p100));
+                    a2.appendChild(linkText2);
+                    a2.title = fullUrl("Get" + "/" + fileinfo.p100);
+                    a2.href = fullUrl("Get" + "/" + fileinfo.p100);
+                    div2.appendChild(span2);
+                    div2.appendChild(a2);
+                    div.appendChild(div2);
+                }
+                if (fileinfo.p200) {
+                    var div2 = document.createElement("div");
+                    div2.setStyle({'display': 'table'});
+                    var span2 = document.createElement("span");
+                    span2.innerHTML = "Картинка 200: ";
+                    var a2 = document.createElement('a');
+                    var linkText2 = document.createTextNode(fullUrl("Get" + "/" + fileinfo.p200));
+                    a2.appendChild(linkText2);
+                    a2.title = fullUrl("Get" + "/" + fileinfo.p200);
+                    a2.href = fullUrl("Get" + "/" + fileinfo.p200);
+                    div2.appendChild(span2);
+                    div2.appendChild(a2);
+                    div.appendChild(div2);
+                }
+                if (fileinfo.p800) {
+                    var div2 = document.createElement("div");
+                    div2.setStyle({'display': 'table'});
+                    var span2 = document.createElement("span");
+                    span2.innerHTML = "Картинка 800: ";
+                    var a2 = document.createElement('a');
+                    var linkText2 = document.createTextNode(fullUrl("Get" + "/" + fileinfo.p800));
+                    a2.appendChild(linkText2);
+                    a2.title = fullUrl("Get" + "/" + fileinfo.p800);
+                    a2.href = fullUrl("Get" + "/" + fileinfo.p800);
+                    div2.appendChild(span2);
+                    div2.appendChild(a2);
+                    div.appendChild(div2);
+                }
+                newcaptcha($("fileuploadfilecaptchaimg"));
+            } else {
+                showHint("Ошибка парсинга", 'red');
+            }
+        };
+    }
+
+    var floader = new fileLoader();
+    showHint("<p></p>");
+
+    addOnMessage("processfile", floader.onprocessFile);
+
+</script>

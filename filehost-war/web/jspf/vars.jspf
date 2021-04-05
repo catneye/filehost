@@ -1,0 +1,82 @@
+<%@page import="java.util.Map"%>
+<%@ page pageEncoding="UTF-8" %>
+<%
+    String action = (String) request.getParameter("action");
+%>
+<%
+    String uripars = "";
+    Map<String, String[]> parameters = request.getParameterMap();
+    for (String parameter : parameters.keySet()) {
+        String value = parameters.get(parameter)[0];
+        uripars += ((uripars.length() > 0) ? "&" : "");
+        uripars += parameter + "=" + value;
+    }
+
+    String scheme = request.getScheme();
+    Integer rport = 0;
+    if (((scheme.equals("http")) && (request.getServerPort() != 80))
+            || ((scheme.equals("https")) && (request.getServerPort() != 443))) {
+        rport = request.getServerPort();
+    }
+
+    String wsuri = (scheme.equals("https") ? "wss" : "ws") + "://" + request.getServerName() + request.getContextPath();
+    String uri = request.getScheme() + "://" + request.getServerName() + request.getContextPath();
+%>
+<script>
+    function getRequests(uri) {
+        var _get = {};
+        var re = /[?&]([^=&]+)(=?)([^&]*)/g;
+        while (m = re.exec(uri))
+            _get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
+        return _get;
+    }
+
+    function gotoIndex() {
+        var href = "index.jsp";
+        var pars = getRequests(location.search);
+        var spars = "";
+        for (var i in pars) {
+            if (pars.hasOwnProperty(i)) {
+                spars += ((spars.length > 0) ? "&" : "?");
+                spars += i + "=" + pars[i];
+            }
+        }
+        document.location.href = "<%=uri%>/" + href + spars;
+    }
+    function gotoTo(href, params, isblank) {
+        var pars = getRequests(location.search);
+        var npars = getRequests(params);
+        var allpars = Object.assign({}, pars, npars);
+        var spars = "";
+        for (var i in allpars) {
+            if (allpars.hasOwnProperty(i)) {
+                spars += ((spars.length > 0) ? "&" : "?");
+                spars += i + "=" + allpars[i];
+            }
+        }
+        if (isblank) {
+            var win = window.open("<%=uri%>/" + href + spars, '_blank');
+            win.focus();
+        } else {
+            document.location.href = "<%=uri%>/" + href + spars;
+        }
+    }
+    function getGoto(href, params) {
+        var pars = getRequests(location.search);
+        var npars = getRequests(params);
+        //Silently don't work in IE. use prototype
+        //var allpars = Object.assign({}, pars, npars);
+        var allpars = Object.extend(pars, npars);
+        var spars = "";
+        for (var i in allpars) {
+            if (allpars.hasOwnProperty(i)) {
+                spars += ((spars.length > 0) ? "&" : "?");
+                spars += i + "=" + allpars[i];
+            }
+        }
+        return "<%=uri%>/" + href + spars;
+    }
+    function fullUrl(href) {
+        return "<%=uri%>/" + href;
+    }
+</script>

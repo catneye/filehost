@@ -1,0 +1,179 @@
+/* 
+    Created on : Oct 5, 2016, 1:15:18 PM
+    Author     : plintus
+*/
+
+/* general*/
+html {
+    min-height: 100%;
+    width: 100%;
+    font-family: 'PT Sans', sans-serif;
+    font-size:12px;
+    background-color: white;
+}
+
+body{
+}
+
+a:link{
+    color: darkred;
+}
+a:visited{
+    color: darkred;
+}
+a:active{
+    color: darkred;
+}
+a:hover{
+    color: darkred;
+}
+
+input{
+    border: 1px solid lightgray;
+}
+
+.main{
+    width: 100%;
+    min-height: 100%;
+    color:  black;
+    font-size: 12px;
+    font-weight: normal;
+    border-spacing: 0px;
+    vertical-align: top;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+    top:0px;
+    left:0px;
+}
+.header{
+    width: 100%;
+    min-height: 50px;
+    background:transparent;
+}
+
+.topmenu{
+    text-align: center; 
+    background:transparent;
+    min-width: 30px;
+    background-color: lightgray;
+    width: 100%
+}
+.topmenuitem{
+    padding: 5px;
+    vertical-align: middle;
+    text-transform: uppercase; 
+    font-size: 12px; 
+    font-weight: bold; 
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.floatmenu{
+    padding: 5px; 
+    margin-top: 5px;
+    border: solid 1px lightgray; 
+    position: absolute; 
+    background: white;
+    box-shadow: 1px 1px 5px black;
+}
+.floatmenuitem{
+    padding: 5px;
+}
+.workspace{
+    max-width: 1024px;
+    min-width: 1024px;
+    min-height: 100%;
+    margin: 0 auto;
+    background:transparent;
+}
+.footer{
+    background-color: rgba(255, 255, 255, 0.4);
+    display: table; 
+    width: 100%;
+    max-width: 1200px;
+    min-width: 1024px;
+    border-radius: 5px 5px 0px 0px;
+    padding: 5px;
+    bottom: 0px;
+    margin: 0 auto;
+}
+.footeritem{
+    display: table-cell;
+    padding: 5px;
+    vertical-align: middle;
+    text-transform: uppercase; 
+    font-size: 12px; 
+    font-weight: bold; 
+    color: black;
+    background:transparent;
+}
+.defaulthint{
+    width: 1024px;
+    margin: 0 auto;
+    background:wheat;
+    border: solid 1px lightgray;
+    border-spacing: 0px;
+    border-radius: 3px;
+    position: fixed;
+    bottom: 0px;
+    z-index: 101;
+}
+.centerhint{
+    position: fixed;
+    top: 200px;
+    width: 800px;
+    height: 200px;
+    border: 5px solid green;
+    background-color: white;
+    box-shadow: 1px 1px 10px black;text-align: center;
+    border-radius: 5px;
+    right: 0;
+    left: 0;
+    margin-right: auto;
+    margin-left: auto;
+}
+.centerloader{
+    position: fixed;
+    top: 200px;
+    width:1024px; 
+    height: 100px;
+    border: 5px solid green;
+    background-color: white;
+    box-shadow: 1px 1px 10px black;text-align: center;
+    border-radius: 5px;
+    right: 0;
+    left: 0;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.fileupload{
+    position: relative;
+    overflow: hidden;
+    font-size: 1em;
+    height: 2em;
+    line-height: 2em;
+    background: lightgrey;
+    text-align: left;
+}
+.fileupload button{
+    float: right;
+    width: 8em;
+    height: 100%;
+    border: 1px solid lightyellow;
+}
+.fileupload div{
+    padding-left: 1em;
+}
+.fileupload input[type=file]{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    transform: scale(20);
+    letter-spacing: 10em;     /* IE 9 fix */
+    -ms-transform: scale(20); /* IE 9 fix */
+    opacity: 0;
+    cursor: pointer
+}
